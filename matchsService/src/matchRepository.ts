@@ -5,7 +5,7 @@ export default class MatchRepository {
     db: Database.Database
 
     constructor() {
-        this.db = new Database('db/matchs.db', { verbose: console.log })
+        this.db = new Database('db/matchs.db', { verbose: (message) => console.debug("\x1b[32mMatchs >", message, "\x1b[0m") })
         this.applyMigrations()
     }
 
@@ -31,12 +31,12 @@ export default class MatchRepository {
     }
 
     getMatchById(id: Number): Match {
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE match_id = ?")
+        const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
         return statement.get(id)
     }
 
     createMatch(newMatch: Match) {
-        const statement = this.db.prepare("INSERT INTO matchs(player1_id, player2_id) VALUES (?, ?)")
+        const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
         return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
     }
 }

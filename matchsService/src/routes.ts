@@ -9,52 +9,28 @@ export const register = (app: express.Application) => {
         res.status(200).json(MatchController.listMatchs())
     })
 
+    app.get('/matchs/:id_match', (req, res) => {
+        const match = MatchController.getMatchById(parseInt(req.params.id_match))
+
+        if (match) {
+            return res.status(200).json(match)
+        }
+
+        return res.status(404).send("No match with this id")
+    })
+
     app.put("/matchs", (req, res) => {
         const newMatch: Match = req.body
-        // const { idP1, idP2 } = newMatch
+        const { idP1, idP2 } = newMatch
     
-        // if (db.getMatchs().filter((m) => m.idP1 === idP1 || m.idP2 === idP1).length > 2) {
-        //     res.status(400).write("Player 1 is playing too many matches");
-        //     return res.end();
-        // }
+        if (MatchController.listMatchs().filter((m) => m.idP1 === idP1 || m.idP2 === idP1).length > 2) {
+            return res.status(400).send("Player 1 is playing too many matches");
+        }
     
-        // if (db.getMatchs().filter((m) => m.idP1 === idP2 || m.idP2 === idP2).length > 2) {
-        //     res.status(400).write("Player 2 is playing too many matches");
-        //     return res.end();
-        // }
+        if (MatchController.listMatchs().filter((m) => m.idP1 === idP2 || m.idP2 === idP2).length > 2) {
+            return res.status(400).send("Player 2 is playing too many matches");
+        }
     
         res.status(200).send(MatchController.createMatch(newMatch))
     });
-
-    // // Créer un utilisateur
-    // app.put("/player", (req, res) => {
-    //     const newUser: User = req.body
-
-    //     if (UserController.listUsers().filter((u) => u.username === newUser.username).length > 0) {
-    //         res.status(400).send("Duplicate username");
-    //     } else {
-    //         // db.addUser({ ...newUser, score: 0 });
-    //         // res.status(200).send("OK");
-    //         res.status(200).send(UserController.addUser(newUser));
-    //     }
-    // });
-
-    // // Connection d'un utilisateur
-    // // On n'envoie pas de token
-    // // On vérifie juste le mot de passe
-    // app.post("/player/connect", (req, res) => {
-    //     const { username, password } = req.body
-
-    //     const users: UserList = UserController.listUsers().filter((u) => u.username === username)
-    //     if (users.length === 0) {
-    //         return res.status(400).send("No user with this username")
-    //     }
-
-    //     const user: User = users[0]
-    //     if (user.password !== password) {
-    //         return res.status(400).send("Wrong password")
-    //     }
-
-    //     res.status(200).send("OK")
-    // })
 }

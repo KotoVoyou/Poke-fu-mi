@@ -5,7 +5,7 @@ export default class UserRepository {
     db: Database.Database
 
     constructor() {
-        this.db = new Database('db/users.db', { verbose: console.log })
+        this.db = new Database('db/users.db', { verbose: (message) => console.debug("\x1b[32mUsers >", message, "\x1b[0m") })
         this.applyMigrations()
     }
 

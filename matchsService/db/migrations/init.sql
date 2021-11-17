@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS matchs (
+  match_id    INTEGER PRIMARY KEY,
+  player1_id  INTEGER NOT NULL ,
+  player2_id  INTEGER NOT NULL ,
+  status      TEXT NOT NULL DEFAULT "CREATED"
+)

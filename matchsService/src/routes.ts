@@ -26,6 +26,7 @@ export const register = (app: express.Application) => {
         return res.status(404).send("No match with this id")
     })
 
+
     app.put("/matchs", (req, res) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch

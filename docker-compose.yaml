@@ -1,0 +1,15 @@
+version: '3.0'
+services:
+  users:
+    image: users:v1
+    ports:
+      - "5000:5000"
+  matchs:
+    image: matchs:v1
+    ports:
+      - "5001:5000"
+    depends_on:
+      - users
+    volumes:
+      - ./matchsService/src:/usr/src/app/src
+      - ./matchsService/package.json:/usr/src/app/package.json

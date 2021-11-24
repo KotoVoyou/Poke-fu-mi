@@ -9,4 +9,4 @@ RUN npm run build
 
 CMD ["node", "dist/index.js"]
 
-EXPOSE 5001
+EXPOSE 5000

@@ -2,10 +2,17 @@ import * as express from 'express'
 import * as MatchController from './matchController'
 
 export const register = (app: express.Application) => {
-    // // Récupérer des jouers
-    // // Query param id pour 1 seul joueur par utilisateur
-    // // Query param top pour obtenir les meilleurs joueurs
+    // Récupérer des matchs
+    // Query param player pour récupérer les matchs d'un joueur
+    // Query param current pour récupérer uniquement les matchs en cours
     app.get("/matchs", (req, res) => {    
+        if (req.query.player) {
+            let current = req.query.current === "true" ? true : false
+            return res.status(200).json(
+                MatchController.getCurrentMatchPlayer(parseInt(req.query.player.toString()), current)
+            )
+        }
+
         res.status(200).json(MatchController.listMatchs())
     })
 
@@ -22,12 +29,14 @@ export const register = (app: express.Application) => {
     app.put("/matchs", (req, res) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch
+
+        if (MatchController.getCurrentMatchPlayer(idP1, false).length > 2)
     
-        if (MatchController.listMatchs().filter((m) => m.idP1 === idP1 || m.idP2 === idP1).length > 2) {
+        if (MatchController.getCurrentMatchPlayer(idP1, false).length > 2) {
             return res.status(400).send("Player 1 is playing too many matches");
         }
     
-        if (MatchController.listMatchs().filter((m) => m.idP1 === idP2 || m.idP2 === idP2).length > 2) {
+        if (MatchController.getCurrentMatchPlayer(idP2, false).length > 2) {
             return res.status(400).send("Player 2 is playing too many matches");
         }
     

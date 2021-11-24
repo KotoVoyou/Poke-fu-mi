@@ -35,6 +35,12 @@ export default class MatchRepository {
         return statement.get(id)
     }
 
+    getCurrentMatchPlayer(idPlayer: Number, current: boolean): MatchList {
+        let statusStatement = current ? " AND status != 'TERMINATED'" : ""
+        const statement = this.db.prepare("SELECT * FROM matchs WHERE idP1 = ? OR idP2 = ?" + statusStatement)
+        return statement.all(idPlayer, idPlayer)
+    }
+
     createMatch(newMatch: Match) {
         const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
         return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid

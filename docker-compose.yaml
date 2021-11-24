@@ -1,11 +1,13 @@
 version: '3.0'
 services:
   users:
-    image: users:v1
+    # image: users:v1
+    build: ./usersService
     ports:
       - "5000:5000"
   matchs:
-    image: matchs:v1
+    # image: matchs:v1
+    build: ./matchsService
     ports:
       - "5001:5000"
     depends_on:

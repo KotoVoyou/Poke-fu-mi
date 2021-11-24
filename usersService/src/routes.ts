@@ -48,4 +48,21 @@ export const register = (app: express.Application) => {
             res.status(200).send(UserController.addUser(newUser));
         }
     });
+
+    app.post("/player/connect", (req, res) => {
+        const { username, password } = req.body
+        const user = UserController.getUserByUsername(username)
+
+        if (!user) {
+            return res.status(404).send("No user with this name")
+        }
+
+        if (user.password != password) {
+            return res.status(400).send("Wrong password")
+        }
+
+        res.status(200).json({
+            id: user.id
+        })
+    })
 }

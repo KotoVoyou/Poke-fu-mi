@@ -35,6 +35,11 @@ export default class UserRepository {
         return statement.get(id)
     }
 
+    getUserByUsername(username: String): User {
+        const statement = this.db.prepare("SELECT * FROM users WHERE name = ?")
+        return statement.get(username)
+    }
+
     getUserTop(top: Number): UserList {
         const statement = this.db.prepare("SELECT * FROM users ORDER BY score DESC LIMIT ?")
         return statement.all(top)

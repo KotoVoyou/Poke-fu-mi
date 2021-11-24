@@ -4,12 +4,9 @@ import * as UserController from './userController'
 export const register = (app: express.Application) => {
     // Récupérer des jouers
     // Query param id pour 1 seul joueur par utilisateur
+    // Query param username pour rechercher un joueur par nom
     // Query param top pour obtenir les meilleurs joueurs
-    app.get("/player", (req, res) => {
-        if (req.query.top) {
-            return res.status(200).json(UserController.getUsersTop(parseInt(req.query.top.toString())))
-        }
-    
+    app.get("/player", (req, res) => {    
         if (req.query.id) {
             const id = parseInt(req.query.id.toString())
             const user = UserController.getUserById(id)
@@ -19,6 +16,21 @@ export const register = (app: express.Application) => {
             }
 
             return res.status(404).send("No user with this id")
+        }
+
+        if (req.query.username) {
+            const username = req.query.username.toString()
+            const user = UserController.getUserByUsername(username)
+
+            if (user) {
+                return res.status(200).json(user)
+            }
+
+            return res.status(404).send("No user with this username")
+        }
+
+        if (req.query.top) {
+            return res.status(200).json(UserController.getUsersTop(parseInt(req.query.top.toString())))
         }
     
         res.status(200).json(UserController.listUsers());

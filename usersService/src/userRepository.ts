@@ -31,7 +31,7 @@ export default class UserRepository {
     }
 
     getUserById(id: Number): User {
-        const statement = this.db.prepare("SELECT * FROM users WHERE user_id = ?")
+        const statement = this.db.prepare("SELECT * FROM users WHERE id = ?")
         return statement.get(id)
     }
 

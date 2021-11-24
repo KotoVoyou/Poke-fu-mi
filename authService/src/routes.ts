@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 export const register = (app: express.Application) => {
     // Connection d'un utilisateur
-    app.post("/connect", (req, res) => {
+    app.post("/auth/connect", (req, res) => {
         const { username, password } = req.body
 
         got.post("http://users:5000/player/connect", {

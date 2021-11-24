@@ -1,12 +1,14 @@
 version: '3.0'
 services:
   users:
-    # image: users:v1
     build: ./usersService
     ports:
       - "5000:5000"
+    volumes:
+      - ./usersService/src:/usr/src/app/src
+      - ./usersService/package.json:/usr/src/app/package.json
+      - ./usersService/node_modules:/usr/src/app/node_modules
   matchs:
-    # image: matchs:v1
     build: ./matchsService
     ports:
       - "5001:5000"
@@ -15,3 +17,4 @@ services:
     volumes:
       - ./matchsService/src:/usr/src/app/src
       - ./matchsService/package.json:/usr/src/app/package.json
+      - ./matchsService/node_modules:/usr/src/app/node_modules

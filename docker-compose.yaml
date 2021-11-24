@@ -1,5 +1,15 @@
 version: '3.0'
 services:
+  auth:
+    build: ./authService
+    ports:
+      - "5002:5000"
+    depends_on:
+      - users
+    volumes:
+      - ./authService/src:/usr/src/app/src
+      - ./authService/package.json:/usr/src/app/package.json
+      - ./authService/node_modules:/usr/src/app/node_modules
   users:
     build: ./usersService
     ports:

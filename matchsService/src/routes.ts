@@ -26,21 +26,27 @@ export const register = (app: express.Application) => {
         return res.status(404).send("No match with this id")
     })
 
-
-    app.put("/matchs", (req, res) => {
+    // Create match
+    app.post("/matchs", (req, res) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch
-
-        if (MatchController.getCurrentMatchPlayer(idP1, false).length > 2)
     
-        if (MatchController.getCurrentMatchPlayer(idP1, false).length > 2) {
+        if (MatchController.getCurrentMatchPlayer(idP1, true).length > 2) {
             return res.status(400).send("Player 1 is playing too many matches");
         }
     
-        if (MatchController.getCurrentMatchPlayer(idP2, false).length > 2) {
+        if (MatchController.getCurrentMatchPlayer(idP2, true).length > 2) {
             return res.status(400).send("Player 2 is playing too many matches");
         }
     
         res.status(200).send(MatchController.createMatch(newMatch))
     });
+
+    // Update match
+    app.put("/matchs/:id_match", (req, res) => {
+        const idMatch = parseInt(req.params.id_match)
+        const update: UpdateMatch = req.body
+
+        res.status(200).send(MatchController.updateMatch(idMatch, update))
+    })
 }

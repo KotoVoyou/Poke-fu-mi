@@ -13,4 +13,6 @@ const createMatch = (newMatch: Match) => {
     return repository.getAllMatchs()
 }
 
+export const updateMatch = (idMatch: number, update: UpdateMatch) => repository.updateMatch(idMatch, update)
+
 export { listMatchs, getMatchById, getCurrentMatchPlayer, createMatch }

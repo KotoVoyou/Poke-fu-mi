@@ -37,12 +37,32 @@ export default class MatchRepository {
 
     getCurrentMatchPlayer(idPlayer: Number, current: boolean): MatchList {
         let statusStatement = current ? " AND status != 'TERMINATED'" : ""
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE idP1 = ? OR idP2 = ?" + statusStatement)
+        const statement = this.db.prepare("SELECT * FROM matchs WHERE (idP1 = ? OR idP2 = ?)" + statusStatement)
         return statement.all(idPlayer, idPlayer)
     }
 
     createMatch(newMatch: Match) {
         const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
         return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
+    }
+
+    updateMatch(idMatch: number, update: UpdateMatch) {
+        let sets: Array<String> = []
+        let values: Array<number | String> = []
+
+        if (update.idp2) {
+            sets.push('idP2 = ?')
+            values.push(update.idp2)
+        }
+
+        if (update.status) {
+            sets.push('status = ?')
+            values.push(update.status)
+        }
+
+        const set: String = sets.reduce((first, second) => `${first}, ${second}`)
+
+        const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
+        return statement.run([...values, idMatch]).lastInsertRowid
     }
 }

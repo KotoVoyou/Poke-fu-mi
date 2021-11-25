@@ -25,6 +25,12 @@ export const register = (app: express.Application) => {
      *         schema:
      *           type: integer
      *       - in: query
+     *         name: username
+     *         description: The name of player to retrieve.
+     *         example: PokemonMaster2005
+     *         schema:
+     *           type: string
+     *       - in: query
      *         name: top
      *         description: The number of players to retrieve from the top players list.
      *         example: 100
@@ -60,10 +66,6 @@ export const register = (app: express.Application) => {
      *         description: Bad request. The ID is invalid, or no user exists with this ID.
     */
     app.get("/player", (req, res) => {
-        if (req.query.top) {
-            return res.status(200).json(UserController.getUsersTop(parseInt(req.query.top.toString())))
-        }
-
         if (req.query.id) {
             const id = parseInt(req.query.id.toString())
             const user = UserController.getUserById(id)

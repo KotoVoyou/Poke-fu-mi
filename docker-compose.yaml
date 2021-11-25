@@ -28,6 +28,7 @@ services:
       - ./usersService/src:/usr/src/app/src
       - ./usersService/package.json:/usr/src/app/package.json
       - ./usersService/node_modules:/usr/src/app/node_modules
+      - ./usersService/db/migrations:/usr/src/app/db/migrations
   matchs:
     build: ./matchsService
     ports:
@@ -38,3 +39,4 @@ services:
       - ./matchsService/src:/usr/src/app/src
       - ./matchsService/package.json:/usr/src/app/package.json
       - ./matchsService/node_modules:/usr/src/app/node_modules
+      - ./matchsService/db/migrations:/usr/src/app/db/migrations

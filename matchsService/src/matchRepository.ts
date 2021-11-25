@@ -15,12 +15,18 @@ export default class MatchRepository {
             this.db.exec(migration)
         }
 
-        const testRow = this.db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'matchs'").get()
+        let testRow = this.db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'matchs'").get()
 
         if (!testRow) {
-            console.log('Applying migrations on DB users...')
+            console.log('Applying migrations on DB matchs...')
             const migrations = ['db/migrations/init.sql']      
             migrations.forEach(applyMigration)
+        }
+
+        testRow = this.db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'rounds'").get()
+        if (!testRow) {
+            console.log("Create table rounds")
+            applyMigration("db/migrations/rounds_init.sql")
         }
     }
 
@@ -65,4 +71,13 @@ export default class MatchRepository {
         const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
         return statement.run([...values, idMatch]).lastInsertRowid
     }
+
+    getRounds = (idMatch: number): Promise<Rounds> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare('SELECT * FROM rounds WHERE matchId = ?')
+            resolve(statement.all(idMatch))
+        } catch (err) {
+            reject(err)
+        }
+    })
 }

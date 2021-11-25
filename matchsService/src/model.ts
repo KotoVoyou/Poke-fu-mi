@@ -9,7 +9,7 @@ type UserList = Array<User>;
 
 type MatchStatus = "CREATED" | "IN_PROGRESS" | "TERMINATED"
 
-type Pokemon = number
+type Pokemon = number // Id of the pokemon in the PokeAPI
 type PokemonDeck = Array<Pokemon>
 
 interface Match {
@@ -30,3 +30,25 @@ interface UpdateMatch {
     pokemonP2 ? : PokemonDeck
     status ? : MatchStatus
 }
+
+type RoundNumber = 1 | 2 | 3 | 4 | 5 | 6
+
+type RoundStatus = "STARTED" | "TERMINATED"
+
+interface RoundPlayer {
+    matchId: number
+    roundNumber: RoundNumber
+    pokemonP1?: Pokemon
+    pokemonP2?: Pokemon
+}
+
+interface Round {
+    matchId: number
+    roundNumber: RoundNumber
+    pokemonP1: Pokemon
+    pokemonP2: Pokemon
+    status: RoundStatus
+    winner: number
+}
+
+type Rounds = Array<Round>

@@ -9,7 +9,7 @@ export const register = (app: express.Application) => {
 
     /**
      * @swagger
-     * /player:
+     * /:
      *   get:
      *     summary: Retrieve a list of players.
      *     description: |
@@ -49,7 +49,7 @@ export const register = (app: express.Application) => {
      *                  id:
      *                    type: integer
      *                    description: The user ID.
-     *                    example: 0
+     *                    example: 1
      *                  username:
      *                    type: string
      *                    description: The username the player registered with.
@@ -64,7 +64,7 @@ export const register = (app: express.Application) => {
      *                    example: 100
      *       404:
      *         description: Bad request. The ID is invalid, or no user exists with this ID.
-    */
+     */
     app.get("/player", (req, res) => {
         if (req.query.id) {
             const id = parseInt(req.query.id.toString())
@@ -96,6 +96,59 @@ export const register = (app: express.Application) => {
     });
 
     // Créer un utilisateur
+    /**
+    * @swagger
+    * /:
+    *   put:
+    *     summary: Register a new player.
+    *     description: |
+    *       Register a new player in the user database. An username and a password are expected. The username should be unique.
+    *       An unique ID is automatically created, and the player's score is initialized at 0.
+    *     requestBody:
+    *       description: Necessary informations to create an user - an username and a password.
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               username:
+    *                 type: string
+    *                 description: The username the player registered with.
+    *                 example: PokemonMaster2005
+    *               password:
+    *                 type: string
+    *                 description: The password used by the player to log in.
+    *                 example: 1234
+    *     responses:
+    *       200:
+    *         description: The updated list of all registered users.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: array
+    *               items:
+    *                 type: object
+    *                 properties:
+    *                  id:
+    *                    type: integer
+    *                    description: The user ID.
+    *                    example: 1
+    *                  username:
+    *                    type: string
+    *                    description: The username the player registered with.
+    *                    example: PokemonMaster2005
+    *                  password:
+    *                    type: string
+    *                    description: The password used by the player to log in.
+    *                    example: 1234
+    *                  score:
+    *                    type: integer
+    *                    description: An indicator of the player's performances over the past matchs (TODO).
+    *                    example: 100
+    *       400:
+    *         description: Error. An user already exists with this username.
+    */
     app.put("/player", (req, res) => {
         const newUser: User = req.body
 
@@ -108,6 +161,47 @@ export const register = (app: express.Application) => {
         }
     });
 
+    /**
+    * @swagger
+    * /connect:
+    *   post:
+    *     summary: Connect to an account.
+    *     description: |
+    *       Log into an user account, using an username and a password.
+    *       If the connection is successful, the user's ID is returned.
+    *     requestBody:
+    *       description: Necessary informations to login - an username and a password.
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               username:
+    *                 type: string
+    *                 description: The username the player registered with.
+    *                 example: PokemonMaster2005
+    *               password:
+    *                 type: string
+    *                 description: The password used by the player to log in.
+    *                 example: 1234
+    *     responses:
+    *       200:
+    *         description: The ID linked to the provided username.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 id:
+    *                   type: integer
+    *                   description: The user ID.
+    *                   example: 1
+    *       400:
+    *         description: Error. The password provided is incorrect.
+    *       404:
+    *         description: Error. The username provided doesn't exist in the database.
+    */
     app.post("/player/connect", (req, res) => {
         const { username, password } = req.body
         const user = UserController.getUserByUsername(username)

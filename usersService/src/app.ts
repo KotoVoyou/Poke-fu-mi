@@ -16,12 +16,8 @@ const swaggerDefinition = {
     },
     servers: [
         {
-            url: 'http://localhost:5000',
+            url: 'http://localhost:5000/player',
             description: 'Player accounts, including names, scores etc.',
-        },
-        {
-            url: 'http://localhost:5000/matchs',
-            description: 'Matchs created between two players.',
         }
     ],
 };

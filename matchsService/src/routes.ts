@@ -58,18 +58,39 @@ export const register = (app: express.Application) => {
             .catch(err => res.status(500).send(err.message || "Error"))
     })
 
+    app.get('/matchs/:id_match/round/:round_number([1-6])', (req, res) => {
+        const idMatch = parseInt(req.params.id_match)
+        const roundNumber: RoundNumber = parseInt(req.params.round_number) as RoundNumber
+
+        MatchController.getRound(idMatch, roundNumber)
+            .then(round => res.status(200).json(round))
+            .catch(err => res.status(err.statusCode || 500).send(err.message || 'Error'))
+    }) 
+
     app.put("/matchs/:id_match/round", (req, res) => {
         const idMatch = parseInt(req.params.id_match)
-        const round: RoundPlayer = req.body
+        const roundInput: RoundPlayer = req.body
 
-        MatchController.getRounds(idMatch)
-            .then(rounds => res.status(200).json(round))
-            .catch(err => res.status(500).send(err.message || "Error"))
+        MatchController.getRound(idMatch, roundInput.roundNumber)
+            .then(round => {
+                if (round) {
+                    if (round.status === 'TERMINATED') 
+                        throw { ...Error(), statusCode: 400 }
+                    
 
-        // get all rounds
-        // valid rounds
-        // Check if created
-        // Create
-        // or update
+                    if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1))
+                        roundInput.status = 'TERMINATED'
+
+                    return MatchController.updateRound(idMatch, roundInput)
+                }
+                return MatchController.createRound(idMatch, roundInput)
+            })
+            .then(_ => MatchController.getRound(idMatch, roundInput.roundNumber))
+            .then(round => res.status(200).json(round))
+            .catch(errorHandler(res))
     })
+}
+
+const errorHandler = (res: any) => {
+    return (error: any) => res.status(error.statusCode || 500).send(error.message || 'Error')
 }

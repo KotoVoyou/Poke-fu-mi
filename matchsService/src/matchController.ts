@@ -1,3 +1,4 @@
+import Database from 'better-sqlite3'
 import MatchRepository from './matchRepository'
 
 const repository = new MatchRepository()
@@ -15,6 +16,22 @@ const createMatch = (newMatch: Match) => {
 
 export const updateMatch = (idMatch: number, update: UpdateMatch) => repository.updateMatch(idMatch, update)
 
-export const getRounds = (idMatch: number) => repository.getRounds(idMatch)
+export const getMatchWithRounds = (idMatch: number): Promise<MatchWithRounds> => new Promise((resolve, reject) => {
+    let match = getMatchById(idMatch)
+    getRounds(idMatch)
+        .then(rounds => resolve({
+            ...match,
+            rounds
+        }))
+        .catch(reject)
+})
+
+export const getRounds = (idMatch: number): Promise<Rounds> => repository.getRounds(idMatch)
+
+export const getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Round> => repository.getRound(idMatch, roundNumber)
+
+export const createRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => repository.createRound(idMatch, round)
+
+export const updateRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => repository.updateRound(idMatch, round)
 
 export { listMatchs, getMatchById, getCurrentMatchPlayer, createMatch }

@@ -36,10 +36,10 @@ type RoundNumber = 1 | 2 | 3 | 4 | 5 | 6
 type RoundStatus = "STARTED" | "TERMINATED"
 
 interface RoundPlayer {
-    matchId: number
     roundNumber: RoundNumber
     pokemonP1?: Pokemon
     pokemonP2?: Pokemon
+    status?: RoundStatus
 }
 
 interface Round {
@@ -49,6 +49,10 @@ interface Round {
     pokemonP2: Pokemon
     status: RoundStatus
     winner: number
+}
+
+interface MatchWithRounds extends Match {
+    rounds: Rounds
 }
 
 type Rounds = Array<Round>

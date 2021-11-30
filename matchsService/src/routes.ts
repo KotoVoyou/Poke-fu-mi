@@ -20,26 +20,26 @@ export const register = (app: express.Application) => {
     app.post("/matchs", (req, res) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch
-    
-        if (MatchController.getCurrentMatchPlayer(idP1, true).length > 2) {
-            return res.status(400).send("Player 1 is playing too many matches");
-        }
-    
-        if (MatchController.getCurrentMatchPlayer(idP2, true).length > 2) {
-            return res.status(400).send("Player 2 is playing too many matches");
-        }
-    
-        res.status(200).send(MatchController.createMatch(newMatch))
-    });
+
+        MatchController.getCurrentMatchPlayer(idP1, true)
+            .then(matchs => {
+                if (matchs.length > 2)
+                    throw {...Error("Player 1 is playing too many matches"), statusCode: 400}
+            })
+            .then(() => MatchController.getCurrentMatchPlayer(idP2, true))
+            .then(matchs => {
+                if (matchs.length > 2)
+                    throw {...Error("Player 2 is playing too many matches"), statusCode: 400}
+            })
+            .then(() => MatchController.createMatch(newMatch))
+            .then(matchs => res.status(200).json(matchs))
+            .catch(errorHandler(res))
+    })
 
     app.get('/matchs/:id_match', (req, res) => {
-        const match = MatchController.getMatchById(parseInt(req.params.id_match))
-
-        if (match) {
-            return res.status(200).json(match)
-        }
-
-        return res.status(404).send("No match with this id")
+        MatchController.getMatchWithRounds(parseInt(req.params.id_match))
+            .then(match => res.status(200).json(match))
+            .catch(errorHandler(res))        
     })
 
     // Update match
@@ -48,6 +48,14 @@ export const register = (app: express.Application) => {
         const update: UpdateMatch = req.body
 
         res.status(200).send(MatchController.updateMatch(idMatch, update))
+    })
+
+    app.delete('/matchs/:id_match', (req, res) => {
+        const idMatch = parseInt(req.params.id_match)
+
+        MatchController.deleteMatch(idMatch)
+            .then(_ => res.status(204).end())
+            .catch(errorHandler(res))
     })
 
     app.get("/matchs/:id_match/round", (req, res) => {
@@ -76,7 +84,6 @@ export const register = (app: express.Application) => {
                 if (round) {
                     if (round.status === 'TERMINATED') 
                         throw { ...Error(), statusCode: 400 }
-                    
 
                     if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1))
                         roundInput.status = 'TERMINATED'

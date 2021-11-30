@@ -1,6 +1,13 @@
 import Database from "better-sqlite3"
 import fs from 'fs'
 
+const dbPromise = (action: any): Promise<any> => new Promise((resolve, reject) => {
+    try {
+        resolve(action())
+    } catch (error) {
+        reject(error)
+    }
+})
 export default class MatchRepository {
     db: Database.Database
 
@@ -30,29 +37,47 @@ export default class MatchRepository {
         }
     }
 
-    getAllMatchs(): MatchList {
-        const statement = this.db.prepare("SELECT * FROM matchs")
-        const rows: MatchList = statement.all()
-        return rows
-    }
+    getAllMatchs = (): Promise<MatchList> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM matchs")
+            resolve(statement.all())
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getMatchById(id: Number): Match {
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
-        return statement.get(id)
-    }
+    getMatchById = (id: Number): Promise<Match> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
+            const match = statement.get(id)
+            if (!match)
+                return reject({ ...Error(), statusCode: 404 })
+            resolve(match)
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getCurrentMatchPlayer(idPlayer: Number, current: boolean): MatchList {
-        let statusStatement = current ? " AND status != 'TERMINATED'" : ""
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE (idP1 = ? OR idP2 = ?)" + statusStatement)
-        return statement.all(idPlayer, idPlayer)
-    }
+    getCurrentMatchPlayer = (idPlayer: Number, current: boolean): Promise<MatchList> => new Promise((resolve, reject) => {
+        try {
+            let statusStatement = current ? " AND status != 'TERMINATED'" : ""
+            const statement = this.db.prepare("SELECT * FROM matchs WHERE (idP1 = ? OR idP2 = ?)" + statusStatement)
+            resolve(statement.all(idPlayer, idPlayer))
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    createMatch(newMatch: Match) {
-        const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
-        return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
-    }
+    createMatch = (newMatch: Match): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
+            return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
+        } catch (error) {
+            
+        }
+    }) 
 
-    updateMatch(idMatch: number, update: UpdateMatch) {
+    updateMatch = (idMatch: number, update: UpdateMatch): Promise<Database.RunResult> => dbPromise(() => {
         let sets: Array<String> = []
         let values: Array<number | String> = []
 
@@ -70,7 +95,16 @@ export default class MatchRepository {
 
         const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
         return statement.run([...values, idMatch]).lastInsertRowid
-    }
+    })
+
+    deleteMatch = (idMatch: number): Promise<Database.RunResult>  => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("DELETE FROM matchs WHERE id = ?")
+            resolve(statement.run(idMatch))
+        } catch (error) {
+            reject(error)
+        }
+    })
 
     getRounds = (idMatch: number): Promise<Rounds> => new Promise((resolve, reject) => {
         try {

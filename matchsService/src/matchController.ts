@@ -3,6 +3,10 @@ import MatchRepository from './matchRepository'
 
 const repository = new MatchRepository()
 
+const errorHandler = (res: any) => {
+    return (error: any) => res.status(error.statusCode || 500).send(error.message || 'Error')
+}
+
 const listMatchs = () => repository.getAllMatchs()
 
 const getMatchById = (id: Number) => repository.getMatchById(id)
@@ -17,14 +21,18 @@ const createMatch = (newMatch: Match) => {
 export const updateMatch = (idMatch: number, update: UpdateMatch) => repository.updateMatch(idMatch, update)
 
 export const getMatchWithRounds = (idMatch: number): Promise<MatchWithRounds> => new Promise((resolve, reject) => {
-    let match = getMatchById(idMatch)
-    getRounds(idMatch)
-        .then(rounds => resolve({
-            ...match,
-            rounds
-        }))
-        .catch(reject)
+    getMatchById(idMatch)
+        .then(match => {
+            getRounds(idMatch)
+                .then(rounds => resolve({
+                    ...match,
+                    rounds
+                }))
+        })
+        .catch(reject) 
 })
+
+export const deleteMatch = (idMatch : number) => repository.deleteMatch(idMatch)
 
 export const getRounds = (idMatch: number): Promise<Rounds> => repository.getRounds(idMatch)
 

@@ -1,3 +1,5 @@
+type DBId = number | bigint
+
 interface User {
     id: number;
     username: string;

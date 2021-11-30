@@ -1,13 +1,6 @@
 import Database from "better-sqlite3"
 import fs from 'fs'
 
-const dbPromise = (action: any): Promise<any> => new Promise((resolve, reject) => {
-    try {
-        resolve(action())
-    } catch (error) {
-        reject(error)
-    }
-})
 export default class MatchRepository {
     db: Database.Database
 
@@ -46,12 +39,12 @@ export default class MatchRepository {
         }
     })
 
-    getMatchById = (id: Number): Promise<Match> => new Promise((resolve, reject) => {
+    getMatchById = (id: Number |bigint): Promise<Match> => new Promise((resolve, reject) => {
         try {
             const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
             const match = statement.get(id)
             if (!match)
-                return reject({ ...Error(), statusCode: 404 })
+                return reject({ ...Error('No match with this id'), statusCode: 404 })
             resolve(match)
         } catch (error) {
             reject(error)
@@ -68,16 +61,16 @@ export default class MatchRepository {
         }
     })
 
-    createMatch = (newMatch: Match): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+    createMatch = (newMatch: Match): Promise<number | bigint> => new Promise((resolve, reject) => {
         try {
             const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
-            return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
+            resolve(statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid)
         } catch (error) {
-            
+            reject(error)
         }
     }) 
 
-    updateMatch = (idMatch: number, update: UpdateMatch): Promise<Database.RunResult> => dbPromise(() => {
+    updateMatch = (idMatch: DBId, update: UpdateMatch): Promise<DBId> => new Promise((resolve, reject) => {
         let sets: Array<String> = []
         let values: Array<number | String> = []
 
@@ -93,11 +86,15 @@ export default class MatchRepository {
 
         const set: String = sets.reduce((first, second) => `${first}, ${second}`)
 
-        const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
-        return statement.run([...values, idMatch]).lastInsertRowid
+        try {
+            const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
+            resolve(statement.run([...values, idMatch]).lastInsertRowid)
+        } catch (error) {
+            reject(error)
+        }
     })
 
-    deleteMatch = (idMatch: number): Promise<Database.RunResult>  => new Promise((resolve, reject) => {
+    deleteMatch = (idMatch: DBId): Promise<Database.RunResult>  => new Promise((resolve, reject) => {
         try {
             const statement = this.db.prepare("DELETE FROM matchs WHERE id = ?")
             resolve(statement.run(idMatch))
@@ -106,7 +103,7 @@ export default class MatchRepository {
         }
     })
 
-    getRounds = (idMatch: number): Promise<Rounds> => new Promise((resolve, reject) => {
+    getRounds = (idMatch: DBId): Promise<Rounds> => new Promise((resolve, reject) => {
         try {
             const statement = this.db.prepare('SELECT * FROM rounds WHERE matchId = ?')
             resolve(statement.all(idMatch))
@@ -125,6 +122,7 @@ export default class MatchRepository {
     })
 
     createRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        //TODO: cannot create round when all previous are not terminated
         try {
             let cols: Array<String> = ['matchId', 'roundNumber']
             let placeHolders: Array<String> = ['?', '?']
@@ -153,7 +151,6 @@ export default class MatchRepository {
     updateRound = (idMatch: number, roundInput: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
         // TODO compute round result and or match winner
         // TODO: add round status
-        console.log("update round")
         try {
             let params: Array<String> = []
             let values: Array<number  | string> = []
@@ -172,8 +169,6 @@ export default class MatchRepository {
             }
 
             let paramsS = params.reduce((f, s) => `${f}, ${s}`)
-
-            console.log(`UPDATE rounds SET ${paramsS} WHERE matchId = ? AND roundNumber = ?`)
 
             const statement = this.db.prepare(`UPDATE rounds SET ${paramsS} WHERE matchId = ? AND roundNumber = ?`)
             resolve(statement.run(values, idMatch, roundInput.roundNumber))

@@ -24,29 +24,54 @@ export default class UserRepository {
         }
     }
 
-    getAllUsers(): UserList {
-        const statement = this.db.prepare("SELECT * FROM users")
-        const rows: UserList = statement.all()
-        return rows
-    }
+    getAllUsers = (): Promise<UserList> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM users")
+            resolve(statement.all())
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getUserById(id: Number): User {
-        const statement = this.db.prepare("SELECT * FROM users WHERE id = ?")
-        return statement.get(id)
-    }
+    getUserById = (id: Number | bigint): Promise<User> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM users WHERE id = ?")
+            const user:User = statement.get(id)
+            if (!user)
+                return reject({...Error("No user with this id"), statusCode: 404})
+            resolve(user)
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getUserByUsername(username: String): User {
-        const statement = this.db.prepare("SELECT * FROM users WHERE name = ?")
-        return statement.get(username)
-    }
+    getUserByUsername = (username: String): Promise<User> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM users WHERE name = ?")
+            const user:User = statement.get(username)
+            if (!user)
+                return reject({...Error("No user with this username"), statusCode: 404})
+            resolve(user)
+        } catch (error) {
+            reject(error)
+        }
+    }) 
 
-    getUserTop(top: Number): UserList {
-        const statement = this.db.prepare("SELECT * FROM users ORDER BY score DESC LIMIT ?")
-        return statement.all(top)
-    }
+    getUserTop = (top: Number): Promise<UserList> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM users ORDER BY score DESC LIMIT ?")
+            resolve(statement.all(top))
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    createUser(newUser: User) {
-        const statement = this.db.prepare("INSERT INTO users(name, password) VALUES (?, ?)")
-        return statement.run(newUser.username, newUser.password).lastInsertRowid
-    }
+    createUser = (newUser: User): Promise<number | bigint> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("INSERT INTO users(name, password) VALUES (?, ?)")
+            resolve(statement.run(newUser.username, newUser.password).lastInsertRowid)
+        } catch (error) {
+            reject(error)
+        }
+    })
 }

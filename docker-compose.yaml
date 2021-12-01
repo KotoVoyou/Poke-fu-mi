@@ -19,7 +19,7 @@ services:
     volumes:
       - ./authService/src:/usr/src/app/src
       - ./authService/package.json:/usr/src/app/package.json
-      - ./authService/node_modules:/usr/src/app/node_modules
+      #- ./authService/node_modules:/usr/src/app/node_modules
   users:
     build: ./usersService
     ports:
@@ -27,7 +27,7 @@ services:
     volumes:
       - ./usersService/src:/usr/src/app/src
       - ./usersService/package.json:/usr/src/app/package.json
-      - ./usersService/node_modules:/usr/src/app/node_modules
+      #- ./usersService/node_modules:/usr/src/app/node_modules
       - ./usersService/db/migrations:/usr/src/app/db/migrations
   matchs:
     build: ./matchsService
@@ -38,5 +38,5 @@ services:
     volumes:
       - ./matchsService/src:/usr/src/app/src
       - ./matchsService/package.json:/usr/src/app/package.json
-      - ./matchsService/node_modules:/usr/src/app/node_modules
+      #- ./matchsService/node_modules:/usr/src/app/node_modules
       - ./matchsService/db/migrations:/usr/src/app/db/migrations

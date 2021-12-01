@@ -3,6 +3,8 @@ import MatchRepository from './matchRepository'
 
 import got from 'got'
 
+const VICTORY_SCORE = 100
+
 const repository = new MatchRepository()
 
 const errorHandler = (res: any) => {
@@ -65,7 +67,12 @@ export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlaye
             .then(_ => {
                 if (isMatchEnded)
                     return computeMatchWinner(match.id)
-                        // .then(winner => ) TODO
+                        .then(winner => {
+                            if (winner != 0) {
+                                return getUser(winner)
+                                    .then(user => updateUserScore(user.id, user.score + VICTORY_SCORE))
+                            }
+                        })
             })
             .then(_ => resolve())
             .catch(reject)
@@ -162,6 +169,21 @@ const computeMatchWinner = (idMatch: DBId): Promise<number> => new Promise((reso
                 .then(_ => winner)
         })
         .then(winner => resolve(winner))
+        .catch(reject)
+})
+
+const getUser = (idUser: DBId): Promise<User> => new Promise((resolve, reject) => {
+    got.get(`http://users:5000/player?id=${idUser}`)
+        .then(response => JSON.parse(response.body))
+        .then(user => resolve(user))
+        .catch(reject)
+})
+
+const updateUserScore = (idUser: DBId, newScore: number): Promise<void> => new Promise((resolve, reject) => {
+    got.put(`http://users:5000/player/${idUser}`, {
+        json: { score: newScore }
+    })
+        .then(_ => resolve())
         .catch(reject)
 })
 

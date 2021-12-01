@@ -69,7 +69,48 @@ export const register = (app: express.Application) => {
             .catch(errorHandler(res))
     })
 
-    app.get('/matchs/:id_match', (req, res) => {
+    /**
+    * @swagger
+    * /{id_match}:
+    *   get:
+    *     summary: Retrieve a single match.
+    *     description: |
+    *       Retrieve a match by its ID from the list of registered matchs.
+    *     parameters:
+    *       - in: path
+    *         name: id_match
+    *         description: The unique ID of the searched match.
+    *         example: 12345
+    *         schema:
+    *           type: integer
+    *     responses:
+    *       200:
+    *         description: A single match, whose ID matches the path param.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                id:
+    *                  type: integer
+    *                  description: The match ID.
+    *                  example: 1
+    *                idP1:
+    *                  type: integer
+    *                  description: The ID of the Player 1 of the match.
+    *                  example: 1
+    *                idP2:
+    *                  type: integer
+    *                  description: The ID of the Player 2 of the match.
+    *                  example: 2
+    *                status:
+    *                  type: string
+    *                  description: A string describing the state of the match (created, finished etc.).
+    *                  example: CREATED
+    *       404:
+    *         description: There is not match with the provided ID.
+    */
+     app.get('/matchs/:id_match', (req, res) => {
         const idMatch = parseInt(req.params.id_match)
         MatchController.getMatchWithRounds(idMatch)
             .then(match => res.status(200).json(match))
@@ -134,65 +175,6 @@ export const register = (app: express.Application) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch
     
-        if (MatchController.getCurrentMatchPlayer(idP1, true).length > 2) {
-            return res.status(400).send("Player 1 is playing too many matches");
-        }
-    
-        if (MatchController.getCurrentMatchPlayer(idP2, true).length > 2) {
-            return res.status(400).send("Player 2 is playing too many matches");
-        }
-    
-        res.status(200).send(MatchController.createMatch(newMatch))
-    });
-
-    /**
-    * @swagger
-    * /{id_match}:
-    *   get:
-    *     summary: Retrieve a single match.
-    *     description: |
-    *       Retrieve a match by its ID from the list of registered matchs.
-    *     parameters:
-    *       - in: path
-    *         name: id_match
-    *         description: The unique ID of the searched match.
-    *         example: 12345
-    *         schema:
-    *           type: integer
-    *     responses:
-    *       200:
-    *         description: A single match, whose ID matches the path param.
-    *         content:
-    *           application/json:
-    *             schema:
-    *               type: object
-    *               properties:
-    *                id:
-    *                  type: integer
-    *                  description: The match ID.
-    *                  example: 1
-    *                idP1:
-    *                  type: integer
-    *                  description: The ID of the Player 1 of the match.
-    *                  example: 1
-    *                idP2:
-    *                  type: integer
-    *                  description: The ID of the Player 2 of the match.
-    *                  example: 2
-    *                status:
-    *                  type: string
-    *                  description: A string describing the state of the match (created, finished etc.).
-    *                  example: CREATED
-    *       404:
-    *         description: There is not match with the provided ID.
-    */
-    app.get('/matchs/:id_match', (req, res) => {
-        const match = MatchController.getMatchById(parseInt(req.params.id_match))
-
-        if (match) {
-            return res.status(200).json(match)
-        }
-
         MatchController.getCurrentMatchPlayer(idP1, true)
             .then(matchs => {
                 if (matchs.length > 2)
@@ -207,7 +189,7 @@ export const register = (app: express.Application) => {
             .then(idMatch => MatchController.getMatchWithRounds(idMatch))
             .then(matchs => res.status(200).json(matchs))
             .catch(errorHandler(res))
-    })
+    });
 
     // Update match
     /**

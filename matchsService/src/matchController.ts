@@ -35,25 +35,63 @@ export const getRounds = (idMatch: number | bigint): Promise<Rounds> => reposito
 
 export const getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Round> => repository.getRound(idMatch, roundNumber)
 
-export const createRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => repository.createRound(idMatch, round)
+export const createRound = (match: MatchWithRounds, round: RoundPlayer): Promise<Database.RunResult> => repository.createRound(match, round)
 
 export const updateRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => repository.updateRound(idMatch, round)
 
-export const computeRoundInput = (idMatch: number, round: Round, roundInput: RoundPlayer): Promise<void> => new Promise((resolve, reject) => {
-    if (round) {
+export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlayer): Promise<void> => new Promise((resolve, reject) => {
+    let isMatchEnded = false
+
+    const fRounds = match.rounds.filter(r => r.roundNumber === roundInput.roundNumber)
+    if (fRounds.length > 0) {
+        const round = fRounds[0]
         if (round.status === 'TERMINATED') 
-            reject({ ...Error('This round is terminated'), statusCode: 400 })
+            reject({ message: 'this round is terminated', statusCode: 400 })
 
-        if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1))
+        if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1)) {
             roundInput.status = 'TERMINATED'
-            // TODO: set winner of round
-            // TODO: if 6 set winner of match
+            roundInput.winner = match.idP1 // TODO: Set winner of the round
+            if (roundInput.roundNumber === 1)
+                isMatchEnded = true
+        }
 
-        return updateRound(idMatch, roundInput)
+        return updateRound(match.id, roundInput)
+            .then(_ => {
+                if (isMatchEnded)
+                    return computeMatchWinner(match.id)
+            })
             .then(_ => resolve())
+            .catch(reject)
     }
-    return createRound(idMatch, roundInput)
+
+    return createRound(match, roundInput)
         .then(_ => resolve())
+        .catch(reject)
+})
+
+const computeMatchWinner = (idMatch: DBId): Promise<void> => new Promise((resolve, reject) => {
+    getMatchWithRounds(idMatch)
+        .then(match => {
+            let cP1: number = 0, cP2: number = 0, winner: number = 0
+            console.log(cP1, cP2, winner)
+            match.rounds.forEach(round => {
+                if (round.winner === match.idP1) {
+                    cP1++
+                } else if (round.winner === match.idP2) {
+                    cP2++
+                }
+            })
+
+            if (cP1 > cP2) {
+                winner = cP1
+            } else if (cP2 > cP1) {
+                winner = cP2
+            }
+
+            return repository.updateWinner(idMatch, winner)
+        })
+        .then(_ => resolve())
+        .catch(reject)
 })
 
 export { listMatchs, getMatchById, getCurrentMatchPlayer, createMatch }

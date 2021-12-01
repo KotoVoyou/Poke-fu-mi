@@ -42,6 +42,7 @@ interface RoundPlayer {
     pokemonP1?: Pokemon
     pokemonP2?: Pokemon
     status?: RoundStatus
+    winner?: number
 }
 
 interface Round {

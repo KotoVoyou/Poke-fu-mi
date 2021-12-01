@@ -60,7 +60,7 @@ export const register = (app: express.Application) => {
      *                    example: 1234
      *                  score:
      *                    type: integer
-     *                    description: An indicator of the player's performances over the past matchs (TODO).
+     *                    description: An indicator of the player's performances over the past matchs.
      *                    example: 100
      *       404:
      *         description: Bad request. The ID is invalid, or no user exists with this ID.
@@ -141,7 +141,7 @@ export const register = (app: express.Application) => {
     *                    example: 1234
     *                  score:
     *                    type: integer
-    *                    description: An indicator of the player's performances over the past matchs (TODO).
+    *                    description: An indicator of the player's performances over the past matchs.
     *                    example: 100
     *       400:
     *         description: Error. An user already exists with this username.

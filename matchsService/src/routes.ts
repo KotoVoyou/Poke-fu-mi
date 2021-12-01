@@ -295,11 +295,19 @@ export const register = (app: express.Application) => {
         const idMatch = parseInt(req.params.id_match)
         const roundInput: RoundPlayer = req.body
 
-        MatchController.getRound(idMatch, roundInput.roundNumber)
-            .then(round => MatchController.computeRoundInput(idMatch, round, roundInput))
+        //TODO: not if match not started
+
+        MatchController.getMatchWithRounds(idMatch)
+            .then(match => MatchController.computeRoundInput(match, roundInput))
             .then(_ => MatchController.getMatchWithRounds(idMatch))
             .then(match => res.status(200).json(match))
             .catch(errorHandler(res))
+
+        // MatchController.getRound(idMatch, roundInput.roundNumber)
+        //     .then(round => MatchController.computeRoundInput(idMatch, round, roundInput))
+        //     .then(_ => MatchController.getMatchWithRounds(idMatch))
+        //     .then(match => res.status(200).json(match))
+        //     .catch(errorHandler(res))
     })
 }
 

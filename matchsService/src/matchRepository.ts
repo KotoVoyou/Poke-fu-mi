@@ -121,12 +121,18 @@ export default class MatchRepository {
         }
     })
 
-    createRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
-        //TODO: cannot create round when all previous are not terminated
+    createRound = (match: MatchWithRounds, round: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        if (round.roundNumber > 6) {
+            return reject({ message: 'round number must be lesser than 7', statusCode: 400 })
+        }
+
+        if (round.roundNumber !== match.rounds.filter(r => r.status === 'TERMINATED').length + 1)
+            return reject({ message: 'wait for previous round end', statusCode: 400 })
+
         try {
             let cols: Array<String> = ['matchId', 'roundNumber']
             let placeHolders: Array<String> = ['?', '?']
-            let params: Array<number> = [idMatch, round.roundNumber]
+            let params: Array<number> = [match.id, round.roundNumber]
 
             if (round.pokemonP1) {
                 cols.push('pokemonP1')
@@ -168,12 +174,26 @@ export default class MatchRepository {
                 values.push(roundInput.status)
             }
 
+            if (roundInput.winner) {
+                params.push('winner = ?')
+                values.push(roundInput.winner)
+            }
+
             let paramsS = params.reduce((f, s) => `${f}, ${s}`)
 
             const statement = this.db.prepare(`UPDATE rounds SET ${paramsS} WHERE matchId = ? AND roundNumber = ?`)
             resolve(statement.run(values, idMatch, roundInput.roundNumber))
         } catch (error) {
             console.log(error)
+            reject(error)
+        }
+    })
+
+    updateWinner = (idMatch: DBId, idWinner: DBId): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        try { //TODO: set status to terminated
+            const statement = this.db.prepare("UPDATE matchs SET winner = ? WHERE id = ?")
+            resolve(statement.run(idWinner, idMatch))
+        } catch (error) {
             reject(error)
         }
     })

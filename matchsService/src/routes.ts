@@ -445,7 +445,7 @@ export const register = (app: express.Application) => {
     *       - create a round, if the given round number 'n' is not associated to any existing round yet,
     *         and the round 'n-1' already exists.
     *       - edit an existing round, if there is already an existing round with this round number.
-    *       In either situation, a pokemon may be registered for each player.
+    *       \nIn either situation, a pokemon may be registered for one of the players.
     *     parameters:
     *       - in: path
     *         name: id_match

@@ -154,9 +154,7 @@ export default class MatchRepository {
         }
     })
 
-    updateRound = (idMatch: number, roundInput: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
-        // TODO compute round result and or match winner
-        // TODO: add round status
+    updateRound = (match: MatchWithRounds, roundInput: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
         try {
             let params: Array<String> = []
             let values: Array<number  | string> = []
@@ -182,16 +180,24 @@ export default class MatchRepository {
             let paramsS = params.reduce((f, s) => `${f}, ${s}`)
 
             const statement = this.db.prepare(`UPDATE rounds SET ${paramsS} WHERE matchId = ? AND roundNumber = ?`)
-            resolve(statement.run(values, idMatch, roundInput.roundNumber))
+            resolve(statement.run(values, match.id, roundInput.roundNumber))
         } catch (error) {
-            console.log(error)
+            reject(error)
+        }
+    })
+
+    updateRoundWinner = (matchId: DBId, roundNumber: RoundNumber, idWinner: DBId): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("UPDATE rounds set status = 'TERMINATED', winner = ? WHERE matchId = ? AND roundNumber = ?")
+            resolve(statement.run(idWinner, matchId, roundNumber))
+        } catch (error) {
             reject(error)
         }
     })
 
     updateWinner = (idMatch: DBId, idWinner: DBId): Promise<Database.RunResult> => new Promise((resolve, reject) => {
-        try { //TODO: set status to terminated
-            const statement = this.db.prepare("UPDATE matchs SET winner = ? WHERE id = ?")
+        try {
+            const statement = this.db.prepare("UPDATE matchs SET winner = ?, status = 'TERMINATED' WHERE id = ?")
             resolve(statement.run(idWinner, idMatch))
         } catch (error) {
             reject(error)

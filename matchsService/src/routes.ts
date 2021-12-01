@@ -302,12 +302,6 @@ export const register = (app: express.Application) => {
             .then(_ => MatchController.getMatchWithRounds(idMatch))
             .then(match => res.status(200).json(match))
             .catch(errorHandler(res))
-
-        // MatchController.getRound(idMatch, roundInput.roundNumber)
-        //     .then(round => MatchController.computeRoundInput(idMatch, round, roundInput))
-        //     .then(_ => MatchController.getMatchWithRounds(idMatch))
-        //     .then(match => res.status(200).json(match))
-        //     .catch(errorHandler(res))
     })
 }
 

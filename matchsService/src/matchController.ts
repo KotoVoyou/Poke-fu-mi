@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3'
 import MatchRepository from './matchRepository'
 
+import got from 'got'
+
 const repository = new MatchRepository()
 
 const errorHandler = (res: any) => {
@@ -37,10 +39,10 @@ export const getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Rou
 
 export const createRound = (match: MatchWithRounds, round: RoundPlayer): Promise<Database.RunResult> => repository.createRound(match, round)
 
-export const updateRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => repository.updateRound(idMatch, round)
+export const updateRound = (match: MatchWithRounds, round: RoundPlayer): Promise<Database.RunResult> => repository.updateRound(match, round)
 
 export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlayer): Promise<void> => new Promise((resolve, reject) => {
-    let isMatchEnded = false
+    let isMatchEnded = false, isRoundEnded = false
 
     const fRounds = match.rounds.filter(r => r.roundNumber === roundInput.roundNumber)
     if (fRounds.length > 0) {
@@ -49,13 +51,17 @@ export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlaye
             reject({ message: 'this round is terminated', statusCode: 400 })
 
         if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1)) {
-            roundInput.status = 'TERMINATED'
-            roundInput.winner = match.idP1 // TODO: Set winner of the round
-            if (roundInput.roundNumber === 1)
+            isRoundEnded = true
+            if (roundInput.roundNumber === 2)
                 isMatchEnded = true
         }
 
-        return updateRound(match.id, roundInput)
+        return updateRound(match, roundInput)
+            .then(_ => {
+                if (isRoundEnded)
+                    return getRound(match.id, roundInput.roundNumber)
+                        .then(r => computeRoundWinner(match.idP1, match.idP2, r))
+            })
             .then(_ => {
                 if (isMatchEnded)
                     return computeMatchWinner(match.id)
@@ -69,11 +75,74 @@ export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlaye
         .catch(reject)
 })
 
+const pokemonRoundWinner = (pokemon1: Pokemon, pokemon2: Pokemon): Promise<PokemonDuelWinner> => new Promise((resolve, reject) => {
+    getPokemonType(pokemon1)
+        .then(typeP1 => getPokemonType(pokemon2)
+            .then(typeP2 => pokemonTypeWinner(typeP1, typeP2)
+                .then(r => {
+                    if (r.winner === 1) {
+                        resolve({ winner: pokemon1 })
+                    } else if (r.winner === 2) {
+                        resolve({ winner: pokemon2 })
+                    } else {
+                        resolve({ winner: 0 })
+                    }
+                })))
+        .catch(reject)
+})
+
+const getPokemonType = (pokemon: Pokemon): Promise<PokemonType> => new Promise((resolve, reject) => {
+    got.get('https://pokeapi.co/api/v2/pokemon/' + pokemon)
+        .then(response => response.body)
+        .then(body => JSON.parse(body))
+        .then(json => json.types[0].type)
+        .then(type => resolve(type))
+        .catch(reject)
+})
+
+const pokemonTypeWinner = (typeP1: PokemonType, typeP2: PokemonType): Promise<PokemonDuelWinner> => new Promise((resolve, reject) => {
+    getTypeDoubleDamageTo(typeP1)
+        .then(doubleDamageP1 => getTypeDoubleDamageTo(typeP2)
+            .then(doubleDamageP2 => {
+                if (doubleDamageP1.findIndex(t => t.name === typeP2.name) > -1 ) {
+                    resolve({ winner: 1 })
+                } else if (doubleDamageP2.findIndex(t => t.name === typeP1.name) > -1) {
+                    resolve({ winner: 2 })
+                } else {
+                    resolve({ winner: 0 })
+                }                
+            }))
+        .catch(reject)
+})
+
+const getTypeDoubleDamageTo = (type: PokemonType): Promise<Array<PokemonType>> => new Promise((resolve, reject) => {
+    got.get(type.url)
+        .then(response => JSON.parse(response.body))
+        .then(json => json.damage_relations.double_damage_to)
+        .then(doubleDamage => resolve(doubleDamage))
+        .catch(reject)
+})
+
+const computeRoundWinner = (idP1: number, idP2: number, round: Round): Promise<void> => new Promise((resolve, reject) => {
+    pokemonRoundWinner(round.pokemonP1, round.pokemonP2)
+        .then(r => {
+            let idWinner = 0
+            if (r.winner === round.pokemonP1) {
+                idWinner = idP1
+            } else if (r.winner === round.pokemonP2) {
+                idWinner = idP2
+            }
+
+            return repository.updateRoundWinner(round.matchId, round.roundNumber, idWinner)
+        })
+        .then(_ => resolve())
+        .catch(reject)
+})
+
 const computeMatchWinner = (idMatch: DBId): Promise<void> => new Promise((resolve, reject) => {
     getMatchWithRounds(idMatch)
         .then(match => {
             let cP1: number = 0, cP2: number = 0, winner: number = 0
-            console.log(cP1, cP2, winner)
             match.rounds.forEach(round => {
                 if (round.winner === match.idP1) {
                     cP1++

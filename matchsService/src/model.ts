@@ -59,3 +59,12 @@ interface MatchWithRounds extends Match {
 }
 
 type Rounds = Array<Round>
+
+interface PokemonType {
+    name: string
+    url: string
+}
+
+interface PokemonDuelWinner {
+    winner: number | Pokemon
+}

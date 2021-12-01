@@ -30,29 +30,47 @@ export default class MatchRepository {
         }
     }
 
-    getAllMatchs(): MatchList {
-        const statement = this.db.prepare("SELECT * FROM matchs")
-        const rows: MatchList = statement.all()
-        return rows
-    }
+    getAllMatchs = (): Promise<MatchList> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM matchs")
+            resolve(statement.all())
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getMatchById(id: Number): Match {
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
-        return statement.get(id)
-    }
+    getMatchById = (id: Number |bigint): Promise<Match> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("SELECT * FROM matchs WHERE id = ?")
+            const match = statement.get(id)
+            if (!match)
+                return reject({ ...Error('No match with this id'), statusCode: 404 })
+            resolve(match)
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getCurrentMatchPlayer(idPlayer: Number, current: boolean): MatchList {
-        let statusStatement = current ? " AND status != 'TERMINATED'" : ""
-        const statement = this.db.prepare("SELECT * FROM matchs WHERE (idP1 = ? OR idP2 = ?)" + statusStatement)
-        return statement.all(idPlayer, idPlayer)
-    }
+    getCurrentMatchPlayer = (idPlayer: Number, current: boolean): Promise<MatchList> => new Promise((resolve, reject) => {
+        try {
+            let statusStatement = current ? " AND status != 'TERMINATED'" : ""
+            const statement = this.db.prepare("SELECT * FROM matchs WHERE (idP1 = ? OR idP2 = ?)" + statusStatement)
+            resolve(statement.all(idPlayer, idPlayer))
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    createMatch(newMatch: Match) {
-        const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
-        return statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid
-    }
+    createMatch = (newMatch: Match): Promise<number | bigint> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
+            resolve(statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid)
+        } catch (error) {
+            reject(error)
+        }
+    }) 
 
-    updateMatch(idMatch: number, update: UpdateMatch) {
+    updateMatch = (idMatch: DBId, update: UpdateMatch): Promise<DBId> => new Promise((resolve, reject) => {
         let sets: Array<String> = []
         let values: Array<number | String> = []
 
@@ -68,16 +86,95 @@ export default class MatchRepository {
 
         const set: String = sets.reduce((first, second) => `${first}, ${second}`)
 
-        const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
-        return statement.run([...values, idMatch]).lastInsertRowid
-    }
+        try {
+            const statement = this.db.prepare(`UPDATE matchs SET ${set} WHERE id = ?`)
+            resolve(statement.run([...values, idMatch]).lastInsertRowid)
+        } catch (error) {
+            reject(error)
+        }
+    })
 
-    getRounds = (idMatch: number): Promise<Rounds> => new Promise((resolve, reject) => {
+    deleteMatch = (idMatch: DBId): Promise<Database.RunResult>  => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare("DELETE FROM matchs WHERE id = ?")
+            resolve(statement.run(idMatch))
+        } catch (error) {
+            reject(error)
+        }
+    })
+
+    getRounds = (idMatch: DBId): Promise<Rounds> => new Promise((resolve, reject) => {
         try {
             const statement = this.db.prepare('SELECT * FROM rounds WHERE matchId = ?')
             resolve(statement.all(idMatch))
         } catch (err) {
             reject(err)
+        }
+    })
+
+    getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Round> => new Promise((resolve, reject) => {
+        try {
+            const statement = this.db.prepare('SELECT * FROM rounds WHERE matchId = ? AND roundNumber = ?')
+            resolve(statement.get(idMatch, roundNumber))
+        } catch (err) {
+            reject(err)
+        }
+    })
+
+    createRound = (idMatch: number, round: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        //TODO: cannot create round when all previous are not terminated
+        try {
+            let cols: Array<String> = ['matchId', 'roundNumber']
+            let placeHolders: Array<String> = ['?', '?']
+            let params: Array<number> = [idMatch, round.roundNumber]
+
+            if (round.pokemonP1) {
+                cols.push('pokemonP1')
+                placeHolders.push('?')
+                params.push(round.pokemonP1)
+            } else if (round.pokemonP2) {
+                cols.push('pokemonP2')
+                placeHolders.push('?')
+                params.push(round.pokemonP2)
+            }
+
+            const colsS = cols.reduce((f, s) => `${f}, ${s}`)
+            const placeHoldersS = placeHolders.reduce((f, s) => `${f}, ${s}`)
+
+            const statement = this.db.prepare(`INSERT INTO rounds (${colsS}) VALUES (${placeHoldersS})`)
+            resolve(statement.run(params))
+        } catch (error) {
+            reject(error)
+        }
+    })
+
+    updateRound = (idMatch: number, roundInput: RoundPlayer): Promise<Database.RunResult> => new Promise((resolve, reject) => {
+        // TODO compute round result and or match winner
+        // TODO: add round status
+        try {
+            let params: Array<String> = []
+            let values: Array<number  | string> = []
+
+            if (roundInput.pokemonP1) {
+                params.push('pokemonP1 = ?')
+                values.push(roundInput.pokemonP1)
+            } else if (roundInput.pokemonP2) {
+                params.push('pokemonP2 = ?')
+                values.push(roundInput.pokemonP2)
+            }
+
+            if (roundInput.status) {
+                params.push('status = ?')
+                values.push(roundInput.status)
+            }
+
+            let paramsS = params.reduce((f, s) => `${f}, ${s}`)
+
+            const statement = this.db.prepare(`UPDATE rounds SET ${paramsS} WHERE matchId = ? AND roundNumber = ?`)
+            resolve(statement.run(values, idMatch, roundInput.roundNumber))
+        } catch (error) {
+            console.log(error)
+            reject(error)
         }
     })
 }

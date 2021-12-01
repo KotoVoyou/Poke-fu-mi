@@ -2,17 +2,19 @@ import UserRepository from './userRepository'
 
 const userRepository = new UserRepository()
 
-const listUsers = () => userRepository.getAllUsers()
+export const listUsers = () => userRepository.getAllUsers()
 
-const getUserById = (id: Number) => userRepository.getUserById(id)
+export const getUserById = (id: Number | bigint) => userRepository.getUserById(id)
 
-const getUserByUsername = (username: String) => userRepository.getUserByUsername(username)
+export const getUserByUsername = (username: String) => userRepository.getUserByUsername(username)
 
-const getUsersTop = (top: Number) => userRepository.getUserTop(top)
+export const getUsersTop = (top: Number) => userRepository.getUserTop(top)
 
-const addUser = (newUser: User) => {
-    userRepository.createUser(newUser)
-    return userRepository.getAllUsers()
-}
+export const addUser = (newUser: User) => userRepository.createUser(newUser)
 
-export { listUsers, getUserById, getUserByUsername, getUsersTop, addUser }
+export const validateUserPassword = (user: User, password: String): Promise<User> => new Promise((resolve, reject) => {
+    if (password !== user.password)
+        return reject({...Error('Wrong password'), statusCode: 400})
+
+    resolve(user)
+})

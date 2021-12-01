@@ -12,6 +12,8 @@ export const getUsersTop = (top: Number) => userRepository.getUserTop(top)
 
 export const addUser = (newUser: User) => userRepository.createUser(newUser)
 
+export const updateUser = (idUser: number, update: UserUpdate) => userRepository.updateUser(idUser, update)
+
 export const validateUserPassword = (user: User, password: String): Promise<User> => new Promise((resolve, reject) => {
     if (password !== user.password)
         return reject({...Error('Wrong password'), statusCode: 400})

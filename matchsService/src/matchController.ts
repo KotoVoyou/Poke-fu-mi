@@ -65,6 +65,7 @@ export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlaye
             .then(_ => {
                 if (isMatchEnded)
                     return computeMatchWinner(match.id)
+                        // .then(winner => ) TODO
             })
             .then(_ => resolve())
             .catch(reject)
@@ -139,7 +140,7 @@ const computeRoundWinner = (idP1: number, idP2: number, round: Round): Promise<v
         .catch(reject)
 })
 
-const computeMatchWinner = (idMatch: DBId): Promise<void> => new Promise((resolve, reject) => {
+const computeMatchWinner = (idMatch: DBId): Promise<number> => new Promise((resolve, reject) => {
     getMatchWithRounds(idMatch)
         .then(match => {
             let cP1: number = 0, cP2: number = 0, winner: number = 0
@@ -158,8 +159,9 @@ const computeMatchWinner = (idMatch: DBId): Promise<void> => new Promise((resolv
             }
 
             return repository.updateWinner(idMatch, winner)
+                .then(_ => winner)
         })
-        .then(_ => resolve())
+        .then(winner => resolve(winner))
         .catch(reject)
 })
 

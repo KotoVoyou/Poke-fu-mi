@@ -5,6 +5,10 @@ interface User {
     score: number;
 }
 
+interface UserUpdate {
+    score?: number
+}
+
 type UserList = Array<User>;
 
 type MatchStatus = "CREATED" | "IN_PROGRESS" | "TERMINATED"

@@ -78,4 +78,24 @@ export default class UserRepository {
             reject(error)
         }
     })
+
+    updateUser = (idUser: number, update: UserUpdate): Promise<void> => new Promise((resolve, reject) => {
+        let params: Array<String> = []
+        let values: Array<number> = []
+
+        if (update.score) {
+            params.push('score = ?')
+            values.push(update.score)
+        }
+
+        let paramsS = params.reduce((f, s) => `${f}, ${s}`)
+
+        try {
+            const statement = this.db.prepare(`UPDATE users SET ${paramsS} WHERE id = ?`)
+            statement.run(values, idUser)
+            resolve()
+        } catch (error) {
+            reject(error)
+        }
+    })
 }

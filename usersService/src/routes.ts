@@ -96,7 +96,7 @@ export const register = (app: express.Application) => {
     /**
     * @swagger
     * /:
-    *   put:
+    *   post:
     *     summary: Register a new player.
     *     description: |
     *       Register a new player in the user database. An username and a password are expected. The username should be unique.
@@ -146,7 +146,7 @@ export const register = (app: express.Application) => {
     *       400:
     *         description: Error. An user already exists with this username.
     */
-    app.put("/player", (req, res) => {
+    app.post("/player", (req, res) => {
         const newUser: User = req.body
 
         UserController.addUser(newUser)
@@ -154,6 +154,15 @@ export const register = (app: express.Application) => {
             .then(user => res.status(200).json(user))
             .catch(errorHandler(res))
     });
+
+    app.put('/player/:id_player', (req, res) => {
+        const idUser = parseInt(req.params.id_player)
+        const userInput: UserUpdate = req.body
+
+        UserController.updateUser(idUser, userInput)
+            .then(_ => res.status(204).end())
+            .catch(errorHandler(res))
+    })
 
     /**
     * @swagger

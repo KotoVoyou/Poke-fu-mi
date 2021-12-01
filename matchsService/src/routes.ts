@@ -199,7 +199,7 @@ export const register = (app: express.Application) => {
     *     summary: Update a match.
     *     description: |
     *       Update the informations of an existing match.
-    *       It is possible to edit the second player's ID, or the status of the match (or both).
+    *       It is possible to set the second player's ID, or the status of the match (or both).
     *     parameters:
     *       - in: path
     *         name: id_match
@@ -207,6 +207,78 @@ export const register = (app: express.Application) => {
     *         example: 12345
     *         schema:
     *           type: integer
+    *     requestBody:
+    *       description: Informations that need to be updated.
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *                idP2:
+    *                  type: integer
+    *                  description: The ID of the Player 2 of the match.
+    *                  example: 2
+    *     responses:
+    *       200:
+    *         description: The updated match.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                id:
+    *                  type: integer
+    *                  description: The match ID.
+    *                  example: 1
+    *                idP1:
+    *                  type: integer
+    *                  description: The ID of the Player 1 of the match.
+    *                  example: 1
+    *                idP2:
+    *                  type: integer
+    *                  description: The ID of the Player 2 of the match.
+    *                  example: 2
+    *                status:
+    *                  type: string
+    *                  description: A string describing the state of the match (created, finished etc.).
+    *                  example: IN_PROGRESS
+    *                winner:
+    *                  type: integer
+    *                  description: The winner of the match, either 1 for Player 1, or 2 for Player 2 (or null if the match is not terminated yet).
+    *                  example: 1
+    *                rounds:
+    *                  type: array
+    *                  description: A list of objects, each describing one round of the match.
+    *                  items:
+    *                    type: object
+    *                    properties:
+    *                     matchId:
+    *                       type: integer
+    *                       description: The ID of the corresponding match.
+    *                       example: 1
+    *                     roundNumber:
+    *                       type: integer
+    *                       description: The round number, between 1 and 6.
+    *                       example: 3
+    *                     pokemonP1:
+    *                       type: integer
+    *                       description: The Pokemon used by Player 1 this round.
+    *                       example: 25
+    *                     pokemonP2:
+    *                       type: integer
+    *                       description: The Pokemon used by Player 2 this round.
+    *                       example: 133
+    *                     status:
+    *                       type: string
+    *                       description: The status of the round, either "STARTED" or "TERMINATED".
+    *                       example: "STARTED"
+    *                     winner:
+    *                       type: integer
+    *                       description: The winner of the round, either 1 for Player 1, or 2 for Player 2 (or null if the round is not terminated yet).
+    *                       example: 1
+    *                  
+    *       500:
+    *         description: Unknown error.
     */
     app.put("/matchs/:id_match", (req, res) => {
         const idMatch = parseInt(req.params.id_match)
@@ -218,6 +290,26 @@ export const register = (app: express.Application) => {
             .catch(errorHandler(res))
     })
 
+/**
+* @swagger
+* /{id_match}:
+*   delete:
+*     summary: Remove a match.
+*     description: |
+*       Remove a match by its ID from the database.
+*     parameters:
+*       - in: path
+*         name: id_match
+*         description: The unique ID of the searched match.
+*         example: 12345
+*         schema:
+*           type: integer
+*     responses:
+*       204:
+*         description: The match was successfully deleted.
+*       500:
+*         description: Unknown error.
+*/
     app.delete('/matchs/:id_match', (req, res) => {
         const idMatch = parseInt(req.params.id_match)
 
@@ -282,6 +374,58 @@ export const register = (app: express.Application) => {
             .catch(errorHandler(res))
     })
 
+    /**
+    * @swagger
+    * /{id_match}/round/{id_round}:
+    *   get:
+    *     summary: Get a specific round from a match.
+    *     description: |
+    *       Get informations about a specific round from a given match.
+    *     parameters:
+    *       - in: path
+    *         name: id_match
+    *         description: The unique ID of the searched match.
+    *         example: 12345
+    *         schema:
+    *           type: integer
+    *       - in: path
+    *         name: id_round
+    *         description: The number of the round, between 1 and 6.
+    *         example: 6
+    *         schema:
+    *           type: integer
+    *     responses:
+    *       200:
+    *         description: The requested round object.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                matchId:
+    *                  type: integer
+    *                  description: The ID of the corresponding match.
+    *                  example: 1
+    *                roundNumber:
+    *                  type: integer
+    *                  description: The round number, between 1 and 6.
+    *                  example: 3
+    *                pokemonP1:
+    *                  type: integer
+    *                  description: The Pokemon used by Player 1 this round.
+    *                pokemonP2:
+    *                  type: integer
+    *                  description: The Pokemon used by Player 2 this round.
+    *                status:
+    *                  type: string
+    *                  description: The status of the round, either "STARTED" or "TERMINATED".
+    *                  example: "STARTED"
+    *                winner:
+    *                  type: integer
+    *                  description: The winner of the round, either 1 for Player 1, or 2 for Player 2.
+    *       500:
+    *         description: Unknown error.
+    */
     app.get('/matchs/:id_match/round/:round_number([1-6])', (req, res) => {
         const idMatch = parseInt(req.params.id_match)
         const roundNumber: RoundNumber = parseInt(req.params.round_number) as RoundNumber
@@ -291,6 +435,104 @@ export const register = (app: express.Application) => {
             .catch(errorHandler(res))
     }) 
 
+    /**
+    * @swagger
+    * /{id_match}/round:
+    *   put:
+    *     summary: Create or update a round.
+    *     description: |
+    *       This allows either to: 
+    *       - create a round, if the given round number 'n' is not associated to any existing round yet,
+    *         and the round 'n-1' already exists.
+    *       - edit an existing round, if there is already an existing round with this round number.
+    *       In either situation, a pokemon may be registered for each player.
+    *     parameters:
+    *       - in: path
+    *         name: id_match
+    *         description: The unique ID of the searched match.
+    *         example: 12345
+    *         schema:
+    *           type: integer
+    *     requestBody:
+    *       description: A round number, and pokemons that have been chosen by the players.
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *                roundNumber:
+    *                  type: integer
+    *                  description: The edited/created round (1-6).
+    *                  example: 6
+    *                pokemonP1:
+    *                  type: integer
+    *                  description: Pokemon chosen by player 1.
+    *                  example: 25
+    *                pokemonP2:
+    *                  type: integer
+    *                  description: Pokemon chosen by player 2.
+    *                  example: 133
+    *     responses:
+    *       200:
+    *         description: The requested round object.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                id:
+    *                  type: integer
+    *                  description: The match ID.
+    *                  example: 1
+    *                idP1:
+    *                  type: integer
+    *                  description: The ID of the Player 1 of the match.
+    *                  example: 1
+    *                idP2:
+    *                  type: integer
+    *                  description: The ID of the Player 2 of the match.
+    *                  example: 2
+    *                status:
+    *                  type: string
+    *                  description: A string describing the state of the match (created, finished etc.).
+    *                  example: IN_PROGRESS
+    *                winner:
+    *                  type: integer
+    *                  description: The winner of the match, either 1 for Player 1, or 2 for Player 2 (or null if the match is not terminated yet).
+    *                  example: 1
+    *                rounds:
+    *                  type: array
+    *                  description: A list of objects, each describing one round of the match.
+    *                  items:
+    *                    type: object
+    *                    properties:
+    *                     matchId:
+    *                       type: integer
+    *                       description: The ID of the corresponding match.
+    *                       example: 1
+    *                     roundNumber:
+    *                       type: integer
+    *                       description: The round number, between 1 and 6.
+    *                       example: 3
+    *                     pokemonP1:
+    *                       type: integer
+    *                       description: The Pokemon used by Player 1 this round.
+    *                       example: 25
+    *                     pokemonP2:
+    *                       type: integer
+    *                       description: The Pokemon used by Player 2 this round.
+    *                       example: 133
+    *                     status:
+    *                       type: string
+    *                       description: The status of the round, either "STARTED" or "TERMINATED".
+    *                       example: "STARTED"
+    *                     winner:
+    *                       type: integer
+    *                       description: The winner of the round, either 1 for Player 1, or 2 for Player 2 (or null if the round is not terminated yet).
+    *                       example: 1
+    *       500:
+    *         description: Unknown error.
+    */
     app.put("/matchs/:id_match/round", (req, res) => {
         const idMatch = parseInt(req.params.id_match)
         const roundInput: RoundPlayer = req.body

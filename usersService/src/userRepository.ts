@@ -38,7 +38,7 @@ export default class UserRepository {
             const statement = this.db.prepare("SELECT * FROM users WHERE id = ?")
             const user:User = statement.get(id)
             if (!user)
-                return reject({...Error("No user with this id"), statusCode: 404})
+                return reject({ message: "no user with this id", statusCode: 404})
             resolve(user)
         } catch (error) {
             reject(error)
@@ -50,7 +50,7 @@ export default class UserRepository {
             const statement = this.db.prepare("SELECT * FROM users WHERE name = ?")
             const user:User = statement.get(username)
             if (!user)
-                return reject({...Error("No user with this username"), statusCode: 404})
+                return reject({ message: "no user with this username", statusCode: 404})
             resolve(user)
         } catch (error) {
             reject(error)
@@ -71,6 +71,10 @@ export default class UserRepository {
             const statement = this.db.prepare("INSERT INTO users(name, password) VALUES (?, ?)")
             resolve(statement.run(newUser.username, newUser.password).lastInsertRowid)
         } catch (error) {
+            if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+                error.statusCode = 400
+                error.message = 'duplicate username'
+            }
             reject(error)
         }
     })

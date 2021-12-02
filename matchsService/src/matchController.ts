@@ -54,6 +54,14 @@ export const getRounds = (idMatch: number | bigint): Promise<Rounds> => reposito
 
 export const getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Round> => repository.getRound(idMatch, roundNumber)
 
+export const validateMatchNotStarted = (match: Match): Promise<Match> => new Promise((resolve, reject) => {
+    if (match.status == 'CREATED') {
+        return resolve(match)
+    }
+
+    reject({ message: 'the match is started', statusCode: 400 })
+})
+
 export const validateMatchInProgress = (match: MatchWithRounds): Promise<MatchWithRounds> => new Promise((resolve, reject) => {
     if (match.status == 'IN_PROGRESS'){
         return resolve(match)

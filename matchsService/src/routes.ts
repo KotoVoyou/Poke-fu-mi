@@ -276,7 +276,9 @@ export const register = (app: express.Application) => {
         const idMatch = parseInt(req.params.id_match)
         const update: UpdateMatch = req.body
 
-        MatchController.updateMatch(idMatch, update)
+        MatchController.getMatchById(idMatch)
+            .then(match => MatchController.validateMatchNotStarted(match))
+            .then(_ => MatchController.updateMatch(idMatch, update))
             .then(_ => MatchController.getMatchWithRounds(idMatch))
             .then(match => res.status(200).json(match))
             .catch(errorHandler(res))

@@ -175,20 +175,12 @@ export const register = (app: express.Application) => {
         const newMatch: Match = req.body
         const { idP1, idP2 } = newMatch
     
-        MatchController.getCurrentMatchPlayer(idP1, true)
-            .then(matchs => {
-                if (matchs.length > 2)
-                    throw {...Error("Player 1 is playing too many matches"), statusCode: 400}
-            })
-            .then(_ => MatchController.getCurrentMatchPlayer(idP2, true))
-            .then(matchs => {
-                if (matchs.length > 2)
-                    throw {...Error("Player 2 is playing too many matches"), statusCode: 400}
-            })
-            .then(() => MatchController.createMatch(newMatch))
+        MatchController.validateMatchInProgressNumber(idP1)
+            .then(_ => MatchController.validateMatchInProgressNumber(idP2))
+            .then(_ => MatchController.createMatch(newMatch))
             .then(idMatch => MatchController.getMatchWithRounds(idMatch))
             .then(matchs => res.status(200).json(matchs))
-            .catch(errorHandler(res))
+            .catch(errorHandler(res))            
     });
 
     // Update match
@@ -540,6 +532,7 @@ export const register = (app: express.Application) => {
         //TODO: not if match not started
 
         MatchController.getMatchWithRounds(idMatch)
+            .then(match => MatchController.validateMatchInProgress(match))
             .then(match => MatchController.computeRoundInput(match, roundInput))
             .then(_ => MatchController.getMatchWithRounds(idMatch))
             .then(match => res.status(200).json(match))

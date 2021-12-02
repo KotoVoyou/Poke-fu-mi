@@ -62,9 +62,24 @@ export default class MatchRepository {
     })
 
     createMatch = (newMatch: Match): Promise<number | bigint> => new Promise((resolve, reject) => {
+
+        let rows: Array<string> = ['idp1']
+        let phs: Array<string> = ['?']
+        let values: Array<number | MatchStatus> = [newMatch.idP1]
+
+        if (newMatch.idP2) {
+            rows.push('idP2', 'status')
+            phs.push('?', '?')
+            values.push(newMatch.idP2, 'IN_PROGRESS')
+        }
+
+        const rowsS: string = rows.reduce((f, s) => `${f}, ${s}`)
+        const phsS: string = phs.reduce((f, s) => `${f}, ${s}`)
+
         try {
-            const statement = this.db.prepare("INSERT INTO matchs(idP1, idP2) VALUES (?, ?)")
-            resolve(statement.run(newMatch.idP1, newMatch.idP2).lastInsertRowid)
+
+            const statement = this.db.prepare(`INSERT INTO matchs(${rows}) VALUES (${phs})`)
+            resolve(statement.run(values).lastInsertRowid)
         } catch (error) {
             reject(error)
         }
@@ -72,16 +87,11 @@ export default class MatchRepository {
 
     updateMatch = (idMatch: DBId, update: UpdateMatch): Promise<DBId> => new Promise((resolve, reject) => {
         let sets: Array<String> = []
-        let values: Array<number | String> = []
+        let values: Array<number | MatchStatus> = []
 
         if (update.idp2) {
-            sets.push('idP2 = ?')
-            values.push(update.idp2)
-        }
-
-        if (update.status) {
-            sets.push('status = ?')
-            values.push(update.status)
+            sets.push('idP2 = ?', 'status = ?')
+            values.push(update.idp2, 'IN_PROGRESS')
         }
 
         const set: String = sets.reduce((first, second) => `${first}, ${second}`)

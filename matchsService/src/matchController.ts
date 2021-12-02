@@ -19,6 +19,21 @@ const getCurrentMatchPlayer = (idPlayer: Number, current: boolean) => repository
 
 const createMatch = (newMatch: Match) => repository.createMatch(newMatch)
 
+export const validateMatchInProgressNumber = (idP?: number): Promise<void> => new Promise((resolve, reject) => {
+    if (idP) {
+        getCurrentMatchPlayer(idP, true)
+            .then(matchs => {
+                if (matchs.length > 2) {
+                    return reject({ message: `Player ${idP} is playing too many matches`, statusCode: 400})
+                }
+
+                resolve()
+            })
+    } else {
+        resolve()
+    }
+})
+
 export const updateMatch = (idMatch: number, update: UpdateMatch) => repository.updateMatch(idMatch, update)
 
 export const getMatchWithRounds = (idMatch: DBId): Promise<MatchWithRounds> => new Promise((resolve, reject) => {
@@ -38,6 +53,14 @@ export const deleteMatch = (idMatch : number) => repository.deleteMatch(idMatch)
 export const getRounds = (idMatch: number | bigint): Promise<Rounds> => repository.getRounds(idMatch)
 
 export const getRound = (idMatch: number, roundNumber: RoundNumber): Promise<Round> => repository.getRound(idMatch, roundNumber)
+
+export const validateMatchInProgress = (match: MatchWithRounds): Promise<MatchWithRounds> => new Promise((resolve, reject) => {
+    if (match.status == 'IN_PROGRESS'){
+        return resolve(match)
+    }
+
+    reject({ message: 'the match is not started', statusCode: 400 })
+})
 
 export const createRound = (match: MatchWithRounds, round: RoundPlayer): Promise<Database.RunResult> => repository.createRound(match, round)
 

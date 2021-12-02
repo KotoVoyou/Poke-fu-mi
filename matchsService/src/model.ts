@@ -30,7 +30,6 @@ interface UpdateMatch {
     idp2 ? : number
     pokemonP1 ? : PokemonDeck
     pokemonP2 ? : PokemonDeck
-    status ? : MatchStatus
 }
 
 type RoundNumber = 1 | 2 | 3 | 4 | 5 | 6

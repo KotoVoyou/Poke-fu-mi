@@ -85,7 +85,7 @@ export const computeRoundInput = (match: MatchWithRounds, roundInput: RoundPlaye
 
         if ((round.pokemonP1 && roundInput.pokemonP2) || (round.pokemonP2 && roundInput.pokemonP1)) {
             isRoundEnded = true
-            if (roundInput.roundNumber === 2)
+            if (roundInput.roundNumber === 6)
                 isMatchEnded = true
         }
 
@@ -191,9 +191,9 @@ const computeMatchWinner = (idMatch: DBId): Promise<number> => new Promise((reso
             })
 
             if (cP1 > cP2) {
-                winner = cP1
+                winner = match.idP1
             } else if (cP2 > cP1) {
-                winner = cP2
+                winner = match.idP2
             }
 
             return repository.updateWinner(idMatch, winner)

@@ -54,6 +54,9 @@ export const register = (app: express.Application) => {
     *                    type: string
     *                    description: A string describing the state of the match (created, finished etc.).
     *                    example: CREATED
+    *                  winner:
+    *                    type: integer
+    *                    description: null if there's no winner yet, otherwise the ID of the winner.
     */
     app.get("/matchs", (req, res) => {    
         if (req.query.player) {
@@ -85,28 +88,61 @@ export const register = (app: express.Application) => {
     *           type: integer
     *     responses:
     *       200:
-    *         description: A single match, whose ID matches the path param.
+    *         description: A single match whose ID matches the path param.
     *         content:
     *           application/json:
     *             schema:
-    *               type: object
-    *               properties:
-    *                id:
-    *                  type: integer
-    *                  description: The match ID.
-    *                  example: 1
-    *                idP1:
-    *                  type: integer
-    *                  description: The ID of the Player 1 of the match.
-    *                  example: 1
-    *                idP2:
-    *                  type: integer
-    *                  description: The ID of the Player 2 of the match.
-    *                  example: 2
-    *                status:
-    *                  type: string
-    *                  description: A string describing the state of the match (created, finished etc.).
-    *                  example: CREATED
+    *               type: array
+    *               items:
+    *                 type: object
+    *                 properties:
+    *                  id:
+    *                    type: integer
+    *                    description: The match ID.
+    *                    example: 1
+    *                  idP1:
+    *                    type: integer
+    *                    description: The ID of the Player 1 of the match.
+    *                    example: 1
+    *                  idP2:
+    *                    type: integer
+    *                    description: The ID of the Player 2 of the match.
+    *                    example: 2
+    *                  status:
+    *                    type: string
+    *                    description: A string describing the state of the match (created, finished etc.).
+    *                    example: CREATED
+    *                  winner:
+    *                    type: integer
+    *                    description: The ID of the winning player, or null if there's none yet.
+    *                  rounds:
+    *                    type: array
+    *                    description: A list of all rounds that have already been created for this match.
+    *                    items:
+    *                      type: object
+    *                      properties:
+    *                        matchId:
+    *                          type: integer
+    *                          description: The ID of the corresponding match.
+    *                          example: 1
+    *                        roundNumber:
+    *                          type: integer
+    *                          description: The round number, between 1 and 6.
+    *                          example: 3
+    *                        pokemonP1:
+    *                          type: integer
+    *                          description: The Pokemon used by Player 1 this round.
+    *                        pokemonP2:
+    *                          type: integer
+    *                          description: The Pokemon used by Player 2 this round.
+    *                        status:
+    *                          type: string
+    *                          description: The status of the round, either "STARTED" or "TERMINATED".
+    *                          example: "STARTED"
+    *                        winner:
+    *                          type: integer
+    *                          description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                          example: 0
     *       404:
     *         description: There is not match with the provided ID.
     */
@@ -168,6 +204,38 @@ export const register = (app: express.Application) => {
     *                    type: string
     *                    description: A string describing the state of the match (created, finished etc.).
     *                    example: CREATED
+    *                  winner:
+    *                    type: integer
+    *                    description: The ID of the winning player, or null if there's none yet.
+    *                  rounds:
+    *                    type: array
+    *                    description: A list of all rounds that have already been created for this match.
+    *                    items:
+    *                      type: object
+    *                      properties:
+    *                        matchId:
+    *                          type: integer
+    *                          description: The ID of the corresponding match.
+    *                          example: 1
+    *                        roundNumber:
+    *                          type: integer
+    *                          description: The round number, between 1 and 6.
+    *                          example: 3
+    *                        pokemonP1:
+    *                          type: integer
+    *                          description: The Pokemon used by Player 1 this round.
+    *                        pokemonP2:
+    *                          type: integer
+    *                          description: The Pokemon used by Player 2 this round.
+    *                        status:
+    *                          type: string
+    *                          description: The status of the round, either "STARTED" or "TERMINATED".
+    *                          example: "STARTED"
+    *                        winner:
+    *                          type: integer
+    *                          description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                          example: 0
+    *                      
     *       400:
     *         description: Match creation failed. One of the player already has 3 or more active matchs.
     */
@@ -188,10 +256,9 @@ export const register = (app: express.Application) => {
     * @swagger
     * /{id_match}:
     *   put:
-    *     summary: Update a match.
+    *     summary: Set Player 2.
     *     description: |
-    *       Update the informations of an existing match.
-    *       It is possible to set the second player's ID, or the status of the match (or both).
+    *       Set the ID of the second player of the match, if none is registered yet. Otherwise, it fails.
     *     parameters:
     *       - in: path
     *         name: id_match
@@ -266,8 +333,8 @@ export const register = (app: express.Application) => {
     *                       example: "STARTED"
     *                     winner:
     *                       type: integer
-    *                       description: The winner of the round, either 1 for Player 1, or 2 for Player 2 (or null if the round is not terminated yet).
-    *                       example: 1
+    *                       description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                       example: 0
     *                  
     *       500:
     *         description: Unknown error.
@@ -356,7 +423,8 @@ export const register = (app: express.Application) => {
     *                    example: "STARTED"
     *                  winner:
     *                    type: integer
-    *                    description: The winner of the round, either 1 for Player 1, or 2 for Player 2.
+    *                    description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                    example: 0
     *       500:
     *         description: Unknown error.
     */
@@ -407,16 +475,19 @@ export const register = (app: express.Application) => {
     *                pokemonP1:
     *                  type: integer
     *                  description: The Pokemon used by Player 1 this round.
+    *                  example: 25
     *                pokemonP2:
     *                  type: integer
     *                  description: The Pokemon used by Player 2 this round.
+    *                  example: 133
     *                status:
     *                  type: string
     *                  description: The status of the round, either "STARTED" or "TERMINATED".
     *                  example: "STARTED"
     *                winner:
     *                  type: integer
-    *                  description: The winner of the round, either 1 for Player 1, or 2 for Player 2.
+    *                  description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                  example: 0
     *       500:
     *         description: Unknown error.
     */
@@ -437,9 +508,9 @@ export const register = (app: express.Application) => {
     *     description: |
     *       This allows either to: 
     *       - create a round, if the given round number 'n' is not associated to any existing round yet,
-    *         and the round 'n-1' already exists.
+    *         and the round 'n-1' already exists. A pokemon should be set for player 1.
     *       - edit an existing round, if there is already an existing round with this round number.
-    *       \nIn either situation, a pokemon may be registered for one of the players.
+    *         A pokemon should be set for player 2.
     *     parameters:
     *       - in: path
     *         name: id_match
@@ -515,15 +586,15 @@ export const register = (app: express.Application) => {
     *                     pokemonP2:
     *                       type: integer
     *                       description: The Pokemon used by Player 2 this round.
-    *                       example: 133
+    *                       example: null
     *                     status:
     *                       type: string
     *                       description: The status of the round, either "STARTED" or "TERMINATED".
     *                       example: "STARTED"
     *                     winner:
     *                       type: integer
-    *                       description: The winner of the round, either 1 for Player 1, or 2 for Player 2 (or null if the round is not terminated yet).
-    *                       example: 1
+    *                       description: The ID of the round's winner, or 0 for a draw. Null if the round isn't terminated.
+    *                       example: null
     *       500:
     *         description: Unknown error.
     */

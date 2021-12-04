@@ -15,7 +15,7 @@ export const register = (app: express.Application) => {
      *     description: |
      *       Retrieve a list of all unique registered players. 
      *       A query parameter can also be used, in order to retrieve either:
-     *       - a single player via his id,
+     *       - a single player via his id or username,
      *       - a list of the top n players.
      *     parameters:
      *       - in: query
@@ -155,6 +155,38 @@ export const register = (app: express.Application) => {
             .catch(errorHandler(res))
     });
 
+    /**
+    * @swagger
+    * /{id_player}:
+    *   put:
+    *     summary: Update a player's score.
+    *     description: |
+    *       Set a new value for the given player's score.
+    *     parameters:
+    *       - in: path
+    *         name: id_player
+    *         description: The unique ID of the player to lookup.
+    *         example: 12345
+    *         schema:
+    *           type: integer
+    *     requestBody:
+    *       description: Informations to update - the new score.
+    *       required: false
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               score:
+    *                 type: integer
+    *                 description: The new score of the player.
+    *                 example: 3000
+    *     responses:
+    *       204:
+    *         description: The update was successful.
+    *       500:
+    *         description: Unknown error.
+    */
     app.put('/player/:id_player', (req, res) => {
         const idUser = parseInt(req.params.id_player)
         const userInput: UserUpdate = req.body
@@ -190,7 +222,7 @@ export const register = (app: express.Application) => {
     *                 example: 1234
     *     responses:
     *       200:
-    *         description: The ID linked to the provided username.
+    *         description: Full informations on the user.
     *         content:
     *           application/json:
     *             schema:
@@ -198,8 +230,20 @@ export const register = (app: express.Application) => {
     *               properties:
     *                 id:
     *                   type: integer
-    *                   description: The user ID.
-    *                   example: 1
+    *                   description: The user ID
+    *                   example: 12345
+    *                 username:
+    *                   type: string
+    *                   description: The username the player registered with.
+    *                   example: PokemonMaster2005
+    *                 password:
+    *                   type: string
+    *                   description: The password used by the player to log in.
+    *                   example: 1234
+    *                 score:
+    *                   type: integer
+    *                   description: The score totaled by the player.
+    *                   example: 3000
     *       400:
     *         description: Error. The password provided is incorrect.
     *       404:

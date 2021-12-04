@@ -24,6 +24,7 @@ Les documentations des services sont accessibles aux adresses suivantes :
 ## Choix techniques
 
 -   Nous avons choisi de conserver les matchs et les rounds en un seul service, en raison du lien fort entre les deux. Les séparer aurait nécessité un nombre trop conséquent d’appels d’un service à l’autre, et n’aurait donc pas eu d’impact positif notable.
+-   Les Pokemons ne sont représentés que par leur ID. Nous avons choisi d'ignorer les autres informations (comme leur nom).
 
 ## Amélioration possible
 
@@ -38,3 +39,4 @@ Il reste cependant quelques points qui aurait pus être améliorés avec plus de
 -   Lors d'un round si les types des deux pokémons sont mutuellements gagnant (par exemple le type dragon),
     le joueur 1 est favorisé et gagne alors qu'on aurait du avoir une égalité
 -   Les pokémons ne sont pas fixés au début du match, on les choisis seulement au moment de joueur le round
+-   Mettre en cache les informations de type des pokemons, pour éviter des appels inutiles à la PokeAPI

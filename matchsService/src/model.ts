@@ -27,7 +27,7 @@ interface Match {
 type MatchList = Array<Match>;
 
 interface UpdateMatch {
-    idp2 ? : number
+    idP2 ? : number
     pokemonP1 ? : PokemonDeck
     pokemonP2 ? : PokemonDeck
 }

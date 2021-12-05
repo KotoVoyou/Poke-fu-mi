@@ -40,3 +40,5 @@ Il reste cependant quelques points qui aurait pus être améliorés avec plus de
     le joueur 1 est favorisé et gagne alors qu'on aurait du avoir une égalité
 -   Les pokémons ne sont pas fixés au début du match, on les choisis seulement au moment de joueur le round
 -   Mettre en cache les informations de type des pokemons, pour éviter des appels inutiles à la PokeAPI
+-   Il est possible de créer un match entre deux utilisateurs qui ont le même identifiants
+-   On ne vérifie pas que les utilisateurs existe au moment de créer un match

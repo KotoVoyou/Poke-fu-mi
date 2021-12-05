@@ -89,9 +89,9 @@ export default class MatchRepository {
         let sets: Array<String> = []
         let values: Array<number | MatchStatus> = []
 
-        if (update.idp2) {
+        if (update.idP2) {
             sets.push('idP2 = ?', 'status = ?')
-            values.push(update.idp2, 'IN_PROGRESS')
+            values.push(update.idP2, 'IN_PROGRESS')
         }
 
         const set: String = sets.reduce((first, second) => `${first}, ${second}`)

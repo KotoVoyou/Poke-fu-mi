@@ -15,7 +15,7 @@
 
 ## Documentation
 
-Les documentations des services sont accessibles aux adresses suivantes :
+Les documentations des services, réalisées avec Swagger, sont accessibles aux adresses suivantes :
 
 -   localhost:5000/docs : UserAPI
 -   localhost:5001/docs : MatchAPI
@@ -25,6 +25,7 @@ Les documentations des services sont accessibles aux adresses suivantes :
 
 -   Nous avons choisi de conserver les matchs et les rounds en un seul service, en raison du lien fort entre les deux. Les séparer aurait nécessité un nombre trop conséquent d’appels d’un service à l’autre, et n’aurait donc pas eu d’impact positif notable.
 -   Les Pokemons ne sont représentés que par leur ID. Nous avons choisi d'ignorer les autres informations (comme leur nom).
+-   La documentation est réalisée avec swagger-jsdoc, un module npm. Cela donne une documentation d'API automatiquement mise en forme, et nécessite seulement d'installer un paquet npm supplémentaire.
 
 ## Amélioration possible
 
